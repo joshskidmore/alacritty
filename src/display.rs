@@ -155,9 +155,18 @@ impl Display {
         // Resize window to specified dimensions
         let dimensions = options.dimensions()
             .unwrap_or_else(|| config.dimensions());
-        let width = cell_width as u32 * dimensions.columns_u32();
-        let height = cell_height as u32 * dimensions.lines_u32();
+        let (width, height) = if dimensions.columns_u32() > 0 && dimensions.lines_u32() > 0 {
+          (cell_width as u32 * dimensions.columns_u32(), cell_height as u32 * dimensions.lines_u32())
+        } else {
+          let Pixels(width) = size.width;
+          let Pixels(height) = size.height;
+          (width, height)
+        };
+      
         let size = Size { width: Pixels(width), height: Pixels(height) };
+
+        let Pixels(width) = size.width;
+        let Pixels(height) = size.height;
         info!("set_inner_size: {}", size);
 
         let viewport_size = Size {
