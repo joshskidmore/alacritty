@@ -152,17 +152,19 @@ impl Display {
         let (glyph_cache, cell_width, cell_height) =
             Self::new_glyph_cache(&window, &mut renderer, config, 0)?;
 
-        // Resize window to specified dimensions
+        // Resize window to specified dimensions unless one or both dimensions are 0
         let dimensions = options.dimensions()
             .unwrap_or_else(|| config.dimensions());
         let (width, height) = if dimensions.columns_u32() > 0 && dimensions.lines_u32() > 0 {
-          (cell_width as u32 * dimensions.columns_u32(), cell_height as u32 * dimensions.lines_u32())
+          let width = cell_width as u32 * dimensions.columns_u32();
+          let height = cell_height as u32 * dimensions.lines_u32();
+          (width, height)
         } else {
           let Pixels(width) = size.width;
           let Pixels(height) = size.height;
           (width, height)
         };
-      
+
         let size = Size { width: Pixels(width), height: Pixels(height) };
 
         let Pixels(width) = size.width;
