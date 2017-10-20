@@ -244,7 +244,7 @@ impl From<&'static str> for Action {
 
 impl<'a, A: ActionContext + 'a> Processor<'a, A> {
     #[inline]
-    pub fn mouse_moved(&mut self, x: u32, y: u32) {
+    pub fn mouse_moved(&mut self, x: u32, y: u32, shift: bool) {
         self.ctx.mouse_mut().x = x;
         self.ctx.mouse_mut().y = y;
 
@@ -265,7 +265,7 @@ impl<'a, A: ActionContext + 'a> Processor<'a, A> {
 
             if self.ctx.mouse_mut().left_button_state == ElementState::Pressed {
                 let report_mode = mode::MOUSE_REPORT_CLICK | mode::MOUSE_MOTION;
-                if !self.ctx.terminal_mode().intersects(report_mode) {
+                if !self.ctx.terminal_mode().intersects(report_mode) || shift {
                     self.ctx.update_selection(Point {
                         line: point.line,
                         col: point.col
@@ -328,7 +328,7 @@ impl<'a, A: ActionContext + 'a> Processor<'a, A> {
         }
     }
 
-    pub fn on_mouse_press(&mut self) {
+    pub fn on_mouse_press(&mut self, shift: bool) {
         let now = Instant::now();
         let elapsed = self.ctx.mouse_mut().last_click_timestamp.elapsed();
         self.ctx.mouse_mut().last_click_timestamp = now;
@@ -344,7 +344,7 @@ impl<'a, A: ActionContext + 'a> Processor<'a, A> {
             },
             _ => {
                 let report_modes = mode::MOUSE_REPORT_CLICK | mode::MOUSE_MOTION;
-                if self.ctx.terminal_mode().intersects(report_modes) {
+                if self.ctx.terminal_mode().intersects(report_modes) && !shift {
                     self.mouse_report(0);
                     return;
                 }
@@ -355,8 +355,8 @@ impl<'a, A: ActionContext + 'a> Processor<'a, A> {
         };
     }
 
-    pub fn on_mouse_release(&mut self) {
-        if self.ctx.terminal_mode().intersects(mode::MOUSE_REPORT_CLICK | mode::MOUSE_MOTION) {
+    pub fn on_mouse_release(&mut self, shift: bool) {
+        if self.ctx.terminal_mode().intersects(mode::MOUSE_REPORT_CLICK | mode::MOUSE_MOTION) & !shift {
             self.mouse_report(3);
             return;
         }
@@ -426,16 +426,16 @@ impl<'a, A: ActionContext + 'a> Processor<'a, A> {
         }
     }
 
-    pub fn mouse_input(&mut self, state: ElementState, button: MouseButton) {
+    pub fn mouse_input(&mut self, state: ElementState, button: MouseButton, shift: bool) {
         if let MouseButton::Left = button {
             let state = mem::replace(&mut self.ctx.mouse_mut().left_button_state, state);
             if self.ctx.mouse_mut().left_button_state != state {
                 match self.ctx.mouse_mut().left_button_state {
                     ElementState::Pressed => {
-                        self.on_mouse_press();
+                        self.on_mouse_press(shift);
                     },
                     ElementState::Released => {
-                        self.on_mouse_release();
+                        self.on_mouse_release(shift);
                     }
                 }
             }
