@@ -848,7 +848,7 @@ impl<'a> RenderApi<'a> {
                 let glyph_key = GlyphKey {
                     font_key: font_key,
                     size: glyph_cache.font_size,
-                    c: '_'
+                    c: ''
                 };
 
                 let underscore = glyph_cache.get(&glyph_key, self);
