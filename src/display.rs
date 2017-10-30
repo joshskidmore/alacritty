@@ -141,6 +141,9 @@ impl Display {
 
         // get window properties for initializing the other subsytems
         let mut viewport_size = window.inner_size_pixels()
+
+        // get window properties for initializing the other subsystems
+        let size = window.inner_size_pixels()
             .expect("glutin returns window size");
         let dpr = window.hidpi_factor();
 
@@ -155,17 +158,17 @@ impl Display {
 
         let dimensions = options.dimensions()
             .unwrap_or_else(|| config.dimensions());
-        
+
         // Resize window to specified dimensions unless one or both dimensions are 0
         if dimensions.columns_u32() > 0 && dimensions.lines_u32() > 0 {
             let width = cell_width as u32 * dimensions.columns_u32();
             let height = cell_height as u32 * dimensions.lines_u32();
-            
+
             let new_viewport_size = Size {
                 width: Pixels(width + 2 * config.padding().x as u32),
                 height: Pixels(height + 2 * config.padding().y as u32),
             };
-            
+
             window.set_inner_size(&new_viewport_size);
             renderer.resize(new_viewport_size.width.0 as _, new_viewport_size.height.0 as _);
             viewport_size = new_viewport_size
@@ -325,6 +328,14 @@ impl Display {
 
         if let Some(title) = terminal.get_next_title() {
             self.window.set_title(&title);
+        }
+
+        if let Some(is_urgent) = terminal.next_is_urgent.take() {
+            // We don't need to set the urgent flag if we already have the
+            // user's attention.
+            if !is_urgent || !self.window.is_focused {
+                self.window.set_urgent(is_urgent);
+            }
         }
 
         let size_info = *terminal.size_info();

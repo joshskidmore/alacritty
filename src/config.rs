@@ -186,6 +186,7 @@ impl Alpha {
         self.0 = Self::clamp_to_valid_range(value);
     }
 
+    #[inline(always)]
     pub fn get(&self) -> f32 {
         self.0
     }
@@ -234,7 +235,7 @@ pub struct Config {
     #[serde(default)]
     custom_cursor_colors: bool,
 
-    /// Should draw bold text with brighter colors intead of bold font
+    /// Should draw bold text with brighter colors instead of bold font
     #[serde(default="true_bool")]
     draw_bold_text_with_bright_colors: bool,
 
@@ -369,7 +370,7 @@ impl<'a> de::Deserialize<'a> for ModsWrapper {
                         "Shift" => res.shift = true,
                         "Alt" | "Option" => res.alt = true,
                         "Control" => res.ctrl = true,
-                        _ => err_println!("unknown modifier {:?}", modifier),
+                        _ => eprintln!("unknown modifier {:?}", modifier),
                     }
                 }
 
@@ -399,7 +400,7 @@ impl<'a> de::Deserialize<'a> for ActionWrapper {
             type Value = ActionWrapper;
 
             fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                f.write_str("Paste, Copy, PasteSelection, or Quit")
+                f.write_str("Paste, Copy, PasteSelection, IncreaseFontSize, DecreaseFontSize, ResetFontSize, or Quit")
             }
 
             fn visit_str<E>(self, value: &str) -> ::std::result::Result<ActionWrapper, E>
@@ -466,7 +467,7 @@ impl<'a> de::Deserialize<'a> for ModeWrapper {
                         "~AppCursor" => res.not_mode |= mode::APP_CURSOR,
                         "AppKeypad" => res.mode |= mode::APP_KEYPAD,
                         "~AppKeypad" => res.not_mode |= mode::APP_KEYPAD,
-                        _ => err_println!("unknown omde {:?}", modifier),
+                        _ => eprintln!("unknown mode {:?}", modifier),
                     }
                 }
 
@@ -1093,6 +1094,7 @@ impl Config {
         &self.colors
     }
 
+    #[inline]
     pub fn background_opacity(&self) -> Alpha {
         self.background_opacity
     }
@@ -1474,7 +1476,7 @@ impl Monitor {
                                         let _ = config_tx.send(config);
                                         handler.on_config_reload();
                                     },
-                                    Err(err) => err_println!("Ignoring invalid config: {}", err),
+                                    Err(err) => eprintln!("Ignoring invalid config: {}", err),
                                 }
                              }
                         }
