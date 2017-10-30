@@ -141,9 +141,6 @@ impl Display {
 
         // get window properties for initializing the other subsytems
         let mut viewport_size = window.inner_size_pixels()
-
-        // get window properties for initializing the other subsystems
-        let size = window.inner_size_pixels()
             .expect("glutin returns window size");
         let dpr = window.hidpi_factor();
 
